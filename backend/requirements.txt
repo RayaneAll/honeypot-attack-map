@@ -1,6 +1,30 @@
-Flask==2.3.3
-Flask-CORS==4.0.0
-Flask-SocketIO==5.3.6
-requests==2.31.0
-python-socketio==5.9.0
-eventlet==0.33.3
+# FastAPI et dépendances
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Base de données
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# WebSocket
+websockets==12.0
+
+# HTTP client pour géolocalisation
+aiohttp==3.9.1
+httpx==0.25.2
+
+# Validation et sérialisation
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Logging et monitoring
+structlog==23.2.0
+
+# Tests
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
+
+# Développement
+python-dotenv==1.0.0
