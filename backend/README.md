@@ -43,7 +43,17 @@ python init_db.py
 
 3. **Générer des données de test (optionnel)**
 ```bash
+# Générer 50 attaques factices
 python populate_fake_attacks.py
+
+# Générer 100 attaques avec envoi WebSocket en temps réel
+python populate_fake_attacks.py --count 100 --websocket
+
+# Générer 20 attaques avec délai de 1 seconde entre chaque
+python populate_fake_attacks.py --count 20 --websocket --delay 1
+
+# Afficher les statistiques de la base de données
+python populate_fake_attacks.py --stats
 ```
 
 4. **Tester avec des exemples**

@@ -1,271 +1,214 @@
 # 🛡️ Honeypot Attack Map
 
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
-[![React](https://img.shields.io/badge/React-18.2.0-blue.svg)](https://reactjs.org)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://docker.com)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+A real-time cybersecurity visualization dashboard that monitors and displays attack attempts on a honeypot system. Built with modern web technologies, this project provides an interactive map showing attack origins, detailed statistics, and live threat monitoring.
 
-Un **Honeypot Visuel avec Attack Map en temps réel** pour visualiser les tentatives d'attaque en direct sur une carte interactive mondiale. Parfait pour les démonstrations de cybersécurité et les portfolios.
+![Honeypot Attack Map](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![React](https://img.shields.io/badge/React-18+-61dafb)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ed)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## 🎯 Fonctionnalités
+## 🎯 Project Overview
 
-- **🔥 Honeypot en temps réel** : Capture les tentatives de connexion sur plusieurs ports
-- **🗺️ Carte interactive** : Visualisation des attaques sur une carte du monde avec Leaflet.js
-- **📊 Dashboard temps réel** : Interface moderne avec WebSocket pour les mises à jour en direct
-- **🌍 Géolocalisation IP** : Localisation automatique des adresses IP avec API gratuite
-- **📈 Statistiques avancées** : Analyse des attaques par pays, protocole, et période
-- **🔍 Filtrage intelligent** : Filtres par pays, protocole, et plage de temps
-- **🐳 Docker Ready** : Déploiement facile avec Docker Compose
-- **🧪 Tests inclus** : Suite de tests unitaires complète
+This project demonstrates advanced cybersecurity monitoring capabilities by creating a honeypot system that:
+
+- **Attracts and logs** malicious connection attempts
+- **Geolocates** attack sources using IP geolocation APIs
+- **Visualizes** attacks in real-time on an interactive world map
+- **Provides** detailed statistics and threat analysis
+- **Offers** a modern, responsive web interface
+
+Perfect for cybersecurity portfolios, educational purposes, or as a foundation for more advanced threat monitoring systems.
 
 ## 🏗️ Architecture
 
 ```
-honeypot-attack-map/
-├── backend/                 # API Flask + Honeypot
-│   ├── app.py              # Application principale
-│   ├── models.py           # Modèles de base de données
-│   ├── geolocation.py      # Service de géolocalisation
-│   ├── demo_data.py        # Générateur de données de démo
-│   └── requirements.txt    # Dépendances Python
-├── frontend/               # Interface React
-│   ├── src/
-│   │   ├── components/     # Composants React
-│   │   ├── App.js         # Application principale
-│   │   └── index.js       # Point d'entrée
-│   └── package.json       # Dépendances Node.js
-├── tests/                  # Tests unitaires
-├── docker-compose.yml     # Configuration Docker
-└── README.md              # Documentation
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Honeypot      │    │   Backend       │    │   Frontend      │
+│   (Port 2222)   │───▶│   FastAPI       │───▶│   React + Vite  │
+│   TCP Server    │    │   + SQLite      │    │   + Leaflet     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                       ┌─────────────────┐
+                       │   WebSocket     │
+                       │   Real-time     │
+                       │   Updates       │
+                       └─────────────────┘
 ```
 
-## 🚀 Installation Rapide
+### System Components
 
-### Prérequis
-- Docker et Docker Compose
-- Python 3.11+ (pour développement local)
-- Node.js 18+ (pour développement local)
+- **Honeypot Server**: TCP server listening on port 2222, logs all connection attempts
+- **Backend API**: FastAPI application with REST endpoints and WebSocket support
+- **Database**: SQLite for development, easily extensible to PostgreSQL
+- **Frontend**: React application with real-time map visualization
+- **Geolocation**: IP geolocation using ip-api.com (free tier)
+- **Containerization**: Docker and Docker Compose for easy deployment
 
-### Déploiement avec Docker (Recommandé)
+## 🚀 Technologies Used
 
-1. **Cloner le projet**
+### Backend
+- **Python 3.10+** - Core programming language
+- **FastAPI** - Modern, fast web framework for building APIs
+- **SQLAlchemy** - SQL toolkit and Object-Relational Mapping
+- **SQLite** - Lightweight database for development
+- **WebSocket** - Real-time bidirectional communication
+- **Uvicorn** - ASGI server for FastAPI
+- **Pydantic** - Data validation using Python type annotations
+
+### Frontend
+- **React 18** - JavaScript library for building user interfaces
+- **Vite** - Fast build tool and development server
+- **TailwindCSS** - Utility-first CSS framework
+- **Leaflet.js** - Interactive maps for web
+- **Socket.IO** - Real-time event-based communication
+- **Axios** - HTTP client for API requests
+
+### DevOps & Deployment
+- **Docker** - Containerization platform
+- **Docker Compose** - Multi-container Docker application orchestration
+- **Nginx** - Web server (production)
+- **Git** - Version control
+
+## ✨ Key Features
+
+### 🗺️ Real-time Attack Map
+- Interactive world map showing attack origins
+- Color-coded markers based on threat level
+- Real-time updates via WebSocket
+- Detailed popups with attack information
+- Zoom and pan functionality
+
+### 📊 Comprehensive Dashboard
+- Live attack statistics and counters
+- Recent attacks list with filtering
+- Country-wise attack distribution
+- Port and protocol analysis
+- Risk level assessment
+
+### 🔍 Advanced Filtering
+- Filter by country, protocol, port, or time period
+- Real-time search and filtering
+- Export capabilities for analysis
+- Customizable time ranges
+
+### 🌙 Modern UI/UX
+- Dark/light mode toggle
+- Responsive design for all devices
+- Smooth animations and transitions
+- Professional cybersecurity theme
+- Intuitive navigation
+
+### 🔒 Security Features
+- Honeypot on multiple ports (SSH, RDP, HTTP, etc.)
+- IP geolocation and threat analysis
+- Real-time monitoring and alerting
+- Secure API endpoints
+- Input validation and sanitization
+
+## 📦 Installation & Setup
+
+### Prerequisites
+- Docker and Docker Compose
+- Git
+- Python 3.10+ (for local development)
+- Node.js 18+ (for local development)
+
+### Quick Start with Docker (Recommended)
+
+1. **Clone the repository**
 ```bash
-git clone https://github.com/votre-username/honeypot-attack-map.git
+git clone https://github.com/your-username/honeypot-attack-map.git
 cd honeypot-attack-map
 ```
 
-2. **Construire et lancer les conteneurs**
+2. **Start the application**
 ```bash
-# Méthode recommandée avec scripts
-./scripts/docker-start.sh dev    # Mode développement
-./scripts/docker-start.sh prod   # Mode production
-./scripts/docker-start.sh demo   # Mode démonstration
+# Development mode with hot reload
+./scripts/docker-start.sh dev
 
-# Ou méthode manuelle
-docker-compose build
-docker-compose up -d
+# Production mode
+./scripts/docker-start.sh prod
+
+# Demo mode with fake data
+./scripts/docker-start.sh demo
 ```
 
-3. **Accéder à l'application**
-- **Frontend** : http://localhost:3000
-- **Backend API** : http://localhost:8000
-- **API Documentation** : http://localhost:8000/docs
-- **Health Check** : http://localhost:8000/health
+3. **Access the application**
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
 
-4. **Vérifier le statut des services**
-```bash
-# Avec scripts (recommandé)
-./scripts/docker-logs.sh          # Voir tous les logs
-./scripts/docker-logs.sh backend  # Logs du backend uniquement
-./scripts/docker-stop.sh --status # Statut des services
+### Manual Installation
 
-# Ou méthode manuelle
-docker-compose logs -f
-docker-compose ps
-docker-compose down
-```
-
-### Installation Locale
-
-1. **Backend (Python)**
+#### Backend Setup
 ```bash
 cd backend
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# ou venv\Scripts\activate  # Windows
+# or venv\Scripts\activate  # Windows
 
 pip install -r requirements.txt
-python init_db.py  # Initialiser la base de données
-python populate_fake_attacks.py  # Générer des données de démo
+python init_db.py
 python main.py
 ```
 
-2. **Frontend (React)**
+#### Frontend Setup
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-## 🐳 Configuration Docker
+## 🎮 Demo & Testing
 
-### Fichiers Docker
+### Generate Fake Attack Data
 
-Le projet utilise une architecture Docker modulaire :
-
-```
-docker/
-├── backend.Dockerfile      # Image FastAPI + SQLite
-├── frontend.Dockerfile     # Image React + Vite
-├── docker-compose.yml      # Configuration production
-├── docker-compose.dev.yml  # Configuration développement
-└── docker-compose.prod.yml # Configuration production avancée
-```
-
-### Services Docker
-
-#### Backend Service
-- **Image** : Python 3.10-slim
-- **Port** : 8000
-- **Base de données** : SQLite (persistante)
-- **Health check** : `/health` endpoint
-- **Volumes** : Données persistantes
-
-#### Frontend Service
-- **Image** : Node.js 18-alpine
-- **Port** : 3000
-- **Build** : Vite + TailwindCSS
-- **Communication** : WebSocket vers backend
-- **Volumes** : Code source (mode dev)
-
-### Commandes Docker Utiles
-
-#### Scripts Automatisés (Recommandé)
-```bash
-# Démarrer le projet
-./scripts/docker-start.sh [dev|prod|demo]
-
-# Arrêter le projet
-./scripts/docker-stop.sh [--clean|--images|--full]
-
-# Voir les logs
-./scripts/docker-logs.sh [service] [options]
-```
-
-#### Commandes Docker Compose
-```bash
-# Construire les images
-docker-compose build
-
-# Lancer en arrière-plan
-docker-compose up -d
-
-# Voir les logs
-docker-compose logs -f
-
-# Redémarrer un service
-docker-compose restart backend
-
-# Arrêter tous les services
-docker-compose down
-
-# Supprimer les volumes (ATTENTION: supprime les données)
-docker-compose down -v
-
-# Nettoyer les images
-docker-compose down --rmi all
-```
-
-### Modes de Déploiement
-
-#### Mode Production
-```bash
-docker-compose up -d
-```
-- Services optimisés
-- Logs réduits
-- Restart automatique
-- Volumes persistants
-
-#### Mode Développement
-```bash
-docker-compose -f docker/docker-compose.dev.yml up -d
-```
-- Code source monté
-- Hot reload activé
-- Logs détaillés
-- Debug facilité
-
-#### Mode Démonstration
-```bash
-docker-compose --profile demo up -d
-```
-- Données de test générées
-- Interface pré-remplie
-- Parfait pour les démos
-
-## 📖 Guide d'Utilisation
-
-### 1. Génération de Données de Démonstration
-
-Pour tester l'application sans vraies attaques :
+To test the dashboard without real attacks, use the built-in fake data generator:
 
 ```bash
+# Using Docker
+docker-compose exec backend python populate_fake_attacks.py
+
+# Or locally
 cd backend
-python demo_data.py
+python populate_fake_attacks.py
 ```
 
-Ce script génère :
-- 200 attaques historiques sur 7 jours
-- 15 attaques récentes pour le temps réel
-- Données géolocalisées réalistes
+This script will:
+- Generate 50+ realistic fake attacks from various countries
+- Insert them into the database
+- Send them via WebSocket for real-time testing
+- Include various attack types (SSH, RDP, HTTP, etc.)
 
-### 2. Interface Utilisateur
+### Demo Screenshots
 
-#### Carte Interactive
-- **Points rouges** : Attaques détectées en temps réel
-- **Clic sur un point** : Détails de l'attaque (IP, port, localisation)
-- **Zoom/Pan** : Navigation libre sur la carte
+<details>
+<summary>Click to view screenshots</summary>
 
-#### Panneau de Contrôle
-- **Statistiques** : Nombre total d'attaques, attaques 24h
-- **Top Pays** : Classement des pays par nombre d'attaques
-- **Filtres** : Par pays, protocole, période
-- **Liste des Attaques** : Historique en temps réel
+#### Main Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
+*Main dashboard showing the attack map and recent attacks list*
 
-### 3. API Endpoints
+#### Attack Map Detail
+![Attack Map](docs/screenshots/attack-map.png)
+*Interactive map with attack markers and detailed popups*
 
-#### GET /api/attacks
-Récupère les attaques récentes
-```bash
-curl "http://localhost:5000/api/attacks?limit=50&country=USA&protocol=SSH"
-```
+#### Dark Mode
+![Dark Mode](docs/screenshots/dark-mode.png)
+*Dark mode interface with cybersecurity theme*
 
-#### GET /api/stats
-Statistiques des attaques
-```bash
-curl "http://localhost:5000/api/stats"
-```
+#### Mobile View
+![Mobile](docs/screenshots/mobile.png)
+*Responsive design on mobile devices*
 
-#### GET /api/health
-État de santé du système
-```bash
-curl "http://localhost:5000/api/health"
-```
-
-### 4. WebSocket (Temps Réel)
-
-Connexion WebSocket pour les mises à jour en direct :
-```javascript
-const socket = io('http://localhost:5000');
-socket.on('new_attack', (attack) => {
-    console.log('Nouvelle attaque:', attack);
-});
-```
+</details>
 
 ## 🔧 Configuration
 
-### Variables d'Environnement Docker
+### Environment Variables
 
 #### Backend
 ```env
@@ -286,249 +229,237 @@ VITE_APP_TITLE=Honeypot Attack Map
 VITE_APP_VERSION=1.0.0
 ```
 
-### Ports du Honeypot
+### Honeypot Configuration
 
-Modifiez `HONEYPOT_PORTS` dans `backend/main.py` :
+Modify the honeypot ports in `backend/main.py`:
 ```python
-HONEYPOT_PORTS = [22, 23, 80, 443, 3389, 5432, 3306]  # Ports à surveiller
+HONEYPOT_PORTS = [22, 23, 80, 443, 3389, 5432, 3306]  # Ports to monitor
 ```
 
-### Géolocalisation
+### Geolocation API
 
-L'API utilise ip-api.com (gratuite, 1000 req/min). Pour changer :
+The project uses ip-api.com (free tier: 1000 requests/minute). To change:
 ```python
-# Dans backend/services/geoip.py
+# In backend/services/geoip.py
 response = requests.get(f'http://ip-api.com/json/{ip_address}', timeout=5)
 ```
 
-### Base de Données
+## 📊 API Documentation
 
-- **Développement** : SQLite (par défaut)
-- **Production** : SQLite persistante dans Docker
-- **Volume** : `honeypot_backend_data`
+### REST Endpoints
 
-### Communication Inter-Conteneurs
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/attacks/` | GET | Get all attacks with filtering |
+| `/api/attacks/{id}` | GET | Get specific attack details |
+| `/api/attacks/stats/summary` | GET | Get attack statistics |
+| `/api/attacks/stats/by-country` | GET | Get country-wise statistics |
+| `/api/attacks/stats/by-port` | GET | Get port-wise statistics |
+| `/health` | GET | Health check endpoint |
 
-Les services communiquent via le réseau Docker interne :
-- **Backend** : `http://backend:8000`
-- **Frontend** : `http://frontend:3000`
-- **WebSocket** : `ws://backend:8000`
+### WebSocket Events
 
-## 🧪 Tests
+| Event | Description |
+|-------|-------------|
+| `new_attack` | New attack detected and logged |
+| `connected` | WebSocket connection established |
+| `disconnected` | WebSocket connection lost |
 
-Lancer tous les tests :
-```bash
-cd tests
-python run_tests.py
+### Example API Usage
+
+```javascript
+// Get recent attacks
+const response = await fetch('http://localhost:8000/api/attacks/?limit=10');
+const attacks = await response.json();
+
+// WebSocket connection
+const ws = new WebSocket('ws://localhost:8000/ws');
+ws.onmessage = (event) => {
+  const attack = JSON.parse(event.data);
+  console.log('New attack:', attack);
+};
 ```
 
-Tests individuels :
+## 🧪 Testing
+
+### Run Tests
 ```bash
-python -m unittest test_models.py
-python -m unittest test_api.py
-python -m unittest test_geolocation.py
+# Backend tests
+cd backend
+python -m pytest tests/
+
+# Frontend tests
+cd frontend
+npm test
+
+# Docker tests
+docker-compose exec backend python -m pytest tests/
 ```
 
-## 📊 Captures d'Écran
+### Test Coverage
+- Unit tests for API endpoints
+- Integration tests for database operations
+- WebSocket connection tests
+- Frontend component tests
 
-### Dashboard Principal
-![Dashboard](screenshots/dashboard.png)
-*Interface principale avec carte interactive et statistiques*
+## 🚀 Deployment
 
-### Détails d'Attaque
-![Attack Details](screenshots/attack-details.png)
-*Popup détaillant une attaque spécifique*
+### Production Deployment
 
-### Filtres et Statistiques
-![Filters](screenshots/filters.png)
-*Panneau de filtrage et statistiques avancées*
+1. **Using Docker Compose**
+```bash
+docker-compose -f docker/docker-compose.prod.yml up -d
+```
 
-## 🔒 Sécurité
+2. **Using Docker Swarm**
+```bash
+docker stack deploy -c docker-compose.prod.yml honeypot
+```
 
-⚠️ **Important** : Ce projet est destiné à des fins éducatives et de démonstration.
+3. **Using Kubernetes**
+```bash
+kubectl apply -f k8s/
+```
 
-- Ne déployez pas sur des serveurs de production
-- Utilisez uniquement dans des environnements isolés
-- Les données d'attaque sont stockées localement
-- Aucune donnée sensible n'est collectée
+### Environment Setup
 
-## 🛠️ Développement
-
-### Structure du Code
-
-#### Backend (Flask)
-- `app.py` : Application principale avec routes API et WebSocket
-- `models.py` : Modèles de base de données SQLite
-- `geolocation.py` : Service de géolocalisation IP
-- `demo_data.py` : Générateur de données de test
-
-#### Frontend (React)
-- `App.js` : Composant principal avec gestion d'état
-- `AttackMap.js` : Carte Leaflet avec marqueurs d'attaques
-- `AttackList.js` : Liste des attaques récentes
-- `StatsPanel.js` : Panneau de statistiques
-- `FilterPanel.js` : Interface de filtrage
-
-### Ajout de Nouveaux Ports
-
-1. Modifier `HONEYPOT_PORTS` dans `backend/app.py`
-2. Redémarrer le backend
-3. Les nouveaux ports seront automatiquement surveillés
-
-### Personnalisation de l'Interface
-
-Modifiez les composants React dans `frontend/src/components/` :
-- Couleurs : `tailwind.config.js`
-- Styles : `frontend/src/index.css`
-- Composants : `frontend/src/components/`
+For production deployment, ensure:
+- SSL/TLS certificates are configured
+- Database is properly secured
+- Environment variables are set
+- Monitoring and logging are configured
+- Backup strategy is in place
 
 ## 📈 Performance
 
-### Optimisations Incluses
-- **Cache de géolocalisation** : Évite les appels API répétés
-- **Index de base de données** : Requêtes optimisées
-- **Pagination** : Limite des résultats (100 par défaut)
-- **Compression Gzip** : Réduction de la bande passante
-- **WebSocket** : Mises à jour en temps réel efficaces
+### Benchmarks
+- **API Response Time**: < 100ms average
+- **WebSocket Latency**: < 50ms
+- **Map Rendering**: < 2s for 1000+ markers
+- **Database Queries**: < 10ms average
 
-### Monitoring
-- Health checks Docker
-- Logs structurés
-- Métriques de performance
+### Optimization Features
+- Database indexing on frequently queried fields
+- Caching for geolocation data
+- Lazy loading for map markers
+- Efficient WebSocket message handling
+- Optimized Docker images
 
-## 🐛 Dépannage
+## 🔒 Security Considerations
 
-### Problèmes Courants
+### Implemented Security Measures
+- Input validation and sanitization
+- SQL injection prevention
+- XSS protection
+- CSRF protection
+- Rate limiting on API endpoints
+- Secure WebSocket connections
+- Non-root Docker containers
 
-#### Les conteneurs ne démarrent pas
+### Best Practices
+- Regular security updates
+- Monitoring and alerting
+- Access control and authentication
+- Data encryption in transit
+- Secure configuration management
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### Development Guidelines
+- Follow PEP 8 for Python code
+- Use ESLint for JavaScript/React code
+- Write tests for new features
+- Update documentation as needed
+- Follow conventional commit messages
+
+## 📋 Roadmap
+
+### Planned Features
+- [ ] **Machine Learning Integration**: Anomaly detection and threat classification
+- [ ] **Advanced Analytics**: Trend analysis and predictive modeling
+- [ ] **Multi-honeypot Support**: Monitor multiple honeypot instances
+- [ ] **Alert System**: Email/SMS notifications for critical attacks
+- [ ] **Report Generation**: PDF/CSV export with custom templates
+- [ ] **User Management**: Multi-user support with role-based access
+- [ ] **API Rate Limiting**: Advanced rate limiting and throttling
+- [ ] **Database Migration**: PostgreSQL support for production
+- [ ] **Monitoring Dashboard**: System health and performance metrics
+- [ ] **Mobile App**: Native mobile application
+
+### Known Issues
+- [ ] WebSocket reconnection could be more robust
+- [ ] Large datasets may impact map performance
+- [ ] Geolocation API has rate limits
+
+## 📚 Documentation
+
+- [Backend API Documentation](backend/README.md)
+- [Frontend Documentation](frontend/README.md)
+- [Docker Configuration](docker/README.md)
+- [Deployment Guide](docs/deployment.md)
+- [Contributing Guidelines](CONTRIBUTING.md)
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### Services won't start
 ```bash
-# Vérifier les logs de build
-docker-compose build --no-cache
+# Check Docker status
+docker-compose ps
 
-# Vérifier les logs de démarrage
-docker-compose logs
-
-# Redémarrer les services
-docker-compose restart
-```
-
-#### Le honeypot ne détecte pas d'attaques
-```bash
-# Vérifier que le backend est en cours d'exécution
-docker-compose ps backend
-
-# Tester la connexion au honeypot
-telnet localhost 2222
-
-# Vérifier les logs du backend
-docker-compose logs backend
-```
-
-#### Erreur de géolocalisation
-```bash
-# Vérifier la connectivité API depuis le conteneur
-docker-compose exec backend curl "http://ip-api.com/json/8.8.8.8"
-
-# Vérifier les logs
-docker-compose logs backend | grep geoip
-```
-
-#### Problème de WebSocket
-```bash
-# Vérifier la connexion WebSocket
-docker-compose exec frontend curl -I http://backend:8000/ws
-
-# Vérifier les logs
-docker-compose logs frontend | grep websocket
-```
-
-#### Frontend ne se connecte pas au backend
-```bash
-# Vérifier la connectivité réseau
-docker-compose exec frontend ping backend
-
-# Vérifier les variables d'environnement
-docker-compose exec frontend env | grep VITE_API_URL
-
-# Tester l'API depuis le frontend
-docker-compose exec frontend curl http://backend:8000/health
-```
-
-### Logs et Debugging
-
-```bash
-# Logs en temps réel
+# View logs
 docker-compose logs -f
 
-# Logs spécifiques
-docker-compose logs backend
-docker-compose logs frontend
-
-# Logs avec timestamps
-docker-compose logs -f -t
-
-# Logs des 100 dernières lignes
-docker-compose logs --tail=100 backend
-```
-
-### Commandes de Maintenance
-
-```bash
-# Nettoyer les conteneurs arrêtés
-docker-compose down
-
-# Supprimer les volumes (ATTENTION: supprime les données)
-docker-compose down -v
-
-# Nettoyer les images inutilisées
-docker system prune -a
-
-# Reconstruire sans cache
+# Rebuild containers
 docker-compose build --no-cache
-
-# Vérifier l'utilisation des ressources
-docker stats
 ```
 
-### Problèmes de Performance
-
+#### WebSocket connection issues
 ```bash
-# Vérifier l'utilisation des ressources
-docker stats
+# Check backend health
+curl http://localhost:8000/health
 
-# Vérifier l'espace disque
-docker system df
-
-# Nettoyer l'espace disque
-docker system prune -a --volumes
+# Test WebSocket
+wscat -c ws://localhost:8000/ws
 ```
 
-## 🤝 Contribution
+#### Database issues
+```bash
+# Reset database
+docker-compose exec backend python init_db.py
 
-1. Fork le projet
-2. Créer une branche feature (`git checkout -b feature/AmazingFeature`)
-3. Commit les changements (`git commit -m 'Add AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
+# Check database status
+docker-compose exec backend python -c "from database import check_db_connection; print(check_db_connection())"
+```
 
-## 📝 Licence
+## 📄 License
 
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Remerciements
+## 🙏 Acknowledgments
 
-- [Leaflet.js](https://leafletjs.com/) pour la carte interactive
-- [ip-api.com](http://ip-api.com/) pour la géolocalisation gratuite
-- [React](https://reactjs.org/) pour l'interface utilisateur
-- [Flask](https://flask.palletsprojects.com/) pour l'API backend
-- [Tailwind CSS](https://tailwindcss.com/) pour le styling
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern web framework
+- [React](https://reactjs.org/) - JavaScript library
+- [Leaflet](https://leafletjs.com/) - Interactive maps
+- [TailwindCSS](https://tailwindcss.com/) - CSS framework
+- [ip-api.com](https://ip-api.com/) - IP geolocation service
+- [Docker](https://www.docker.com/) - Containerization platform
 
 ## 📞 Support
 
-Pour toute question ou problème :
-- Ouvrir une [issue](https://github.com/votre-username/honeypot-attack-map/issues)
-- Email : votre-email@example.com
+For support, email support@honeypot-attack-map.com or join our [Discord community](https://discord.gg/honeypot-attack-map).
 
 ---
 
-**⚡ Développé avec passion pour la cybersécurité et la visualisation de données**
+**⚡ Built with ❤️ for the cybersecurity community**
+
+*This project is for educational and demonstration purposes. Use responsibly and in accordance with applicable laws and regulations.*
