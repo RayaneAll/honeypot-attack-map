@@ -1,432 +1,446 @@
-# 🛡️ Honeypot Attack Map - Backend
+# 🗄️ Honeypot Attack Map - Base de Données
 
-Backend FastAPI pour le système de visualisation d'attaques en temps réel avec honeypot TCP.
+Configuration et modèles de base de données pour le système de visualisation d'attaques en temps réel.
 
 ## 🎯 Vue d'ensemble
 
-Ce backend fournit :
-- **Honeypot TCP** qui écoute sur un port et capture les tentatives de connexion
-- **API REST** pour accéder aux données d'attaques
-- **WebSocket** pour les mises à jour en temps réel
-- **Géolocalisation IP** automatique via API gratuite
-- **Base de données SQLite** avec SQLAlchemy ORM
+Ce module fournit :
+- **Configuration SQLAlchemy** pour SQLite (dev) et PostgreSQL (prod)
+- **Modèle Attack** complet avec géolocalisation
+- **Scripts d'initialisation** et de gestion
+- **Générateur de données de test** pour les démonstrations
 
 ## 🏗️ Architecture
 
 ```
 backend/
-├── main.py                 # Application FastAPI principale
-├── honeypot.py            # Serveur honeypot TCP
-├── models.py              # Modèles SQLAlchemy
-├── database.py            # Configuration base de données
-├── routes/
-│   └── attacks.py         # Endpoints REST API
-├── services/
-│   └── geoip.py           # Service de géolocalisation
-├── tests/
-│   └── test_api.py        # Tests unitaires
-├── init_db.py             # Script d'initialisation
+├── database.py              # Configuration SQLAlchemy
+├── models.py                # Modèles de données
+├── init_db.py              # Script d'initialisation
 ├── populate_fake_attacks.py # Générateur de données de test
-└── requirements.txt       # Dépendances Python
+├── example_usage.py        # Exemples d'utilisation
+└── README.md               # Cette documentation
 ```
 
-## 🚀 Installation et Démarrage
+## 🚀 Installation et Initialisation
 
 ### Prérequis
 - Python 3.11+
-- pip
+- SQLAlchemy
+- SQLite3 (inclus avec Python)
 
 ### Installation
 
-1. **Cloner le projet**
+1. **Installer les dépendances**
 ```bash
-git clone <repository-url>
-cd honeypot-attack-map/backend
+pip install sqlalchemy
 ```
 
-2. **Créer un environnement virtuel**
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou venv\Scripts\activate  # Windows
-```
-
-3. **Installer les dépendances**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Initialiser la base de données**
+2. **Initialiser la base de données**
 ```bash
 python init_db.py
 ```
 
-5. **Générer des données de test (optionnel)**
+3. **Générer des données de test (optionnel)**
 ```bash
 python populate_fake_attacks.py
 ```
 
-6. **Lancer le serveur**
+4. **Tester avec des exemples**
 ```bash
-python main.py
+python example_usage.py
 ```
 
-### Accès à l'API
+## 📊 Modèle de Données
 
-- **API Documentation** : http://localhost:8000/docs
-- **API Alternative** : http://localhost:8000/redoc
-- **Health Check** : http://localhost:8000/health
-- **WebSocket** : ws://localhost:8000/ws
+### Table `attacks`
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `id` | Integer | Clé primaire auto-incrémentée |
+| `ip_address` | String(45) | Adresse IP de l'attaquant |
+| `port` | Integer | Port ciblé par l'attaque |
+| `protocol` | String(10) | Protocole utilisé (TCP, UDP, etc.) |
+| `country` | String(100) | Pays d'origine |
+| `city` | String(100) | Ville d'origine |
+| `latitude` | Float | Latitude géographique |
+| `longitude` | Float | Longitude géographique |
+| `region` | String(100) | Région/État |
+| `timezone` | String(50) | Fuseau horaire |
+| `isp` | String(200) | Fournisseur d'accès internet |
+| `timestamp` | DateTime | Horodatage de l'attaque |
+| `user_agent` | Text | User-Agent si disponible |
+| `additional_data` | Text | Données supplémentaires (JSON) |
+
+### Index de Performance
+
+- `idx_ip_address` : Index sur l'adresse IP
+- `idx_timestamp` : Index sur l'horodatage
+- `idx_country` : Index sur le pays
+- `idx_ip_timestamp` : Index composé IP + timestamp
+- `idx_country_timestamp` : Index composé pays + timestamp
+- `idx_port_timestamp` : Index composé port + timestamp
 
 ## 🔧 Configuration
 
 ### Variables d'environnement
 
-Créer un fichier `.env` :
 ```env
 DATABASE_URL=sqlite:///./honeypot_attacks.db
-HONEYPOT_PORT=2222
-GEOIP_API_URL=http://ip-api.com/json
-LOG_LEVEL=INFO
 ```
 
-### Ports du Honeypot
+### Configuration SQLite (Développement)
 
-Modifier dans `main.py` :
 ```python
-honeypot_server = HoneypotServer(
-    port=2222,  # Changer le port ici
-    on_attack_callback=handle_new_attack
+# Dans database.py
+engine = create_engine(
+    "sqlite:///./honeypot_attacks.db",
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+    echo=False
 )
 ```
 
-## 📡 API Endpoints
-
-### Endpoints Principaux
-
-#### `GET /`
-Informations générales sur l'API
-
-#### `GET /health`
-Vérification de l'état de santé
-
-#### `GET /stats`
-Statistiques générales des attaques
-
-### Endpoints des Attaques
-
-#### `GET /api/attacks/`
-Récupère la liste des attaques
-
-**Paramètres de requête :**
-- `limit` (int, optionnel) : Nombre maximum d'attaques (défaut: 100)
-- `offset` (int, optionnel) : Décalage pour pagination (défaut: 0)
-- `country` (str, optionnel) : Filtrer par pays
-- `protocol` (str, optionnel) : Filtrer par protocole
-- `port` (int, optionnel) : Filtrer par port
-- `hours` (int, optionnel) : Filtrer les attaques des dernières X heures
-
-**Exemple :**
-```bash
-curl "http://localhost:8000/api/attacks/?limit=50&country=United States&protocol=SSH"
-```
-
-#### `GET /api/attacks/{attack_id}`
-Récupère une attaque spécifique par ID
-
-#### `GET /api/attacks/stats/summary`
-Résumé des statistiques d'attaques
-
-#### `GET /api/attacks/stats/by-country`
-Statistiques par pays
-
-#### `GET /api/attacks/stats/by-port`
-Statistiques par port
-
-#### `GET /api/attacks/recent/live`
-Attaques très récentes (pour temps réel)
-
-#### `DELETE /api/attacks/{attack_id}`
-Supprime une attaque spécifique
-
-#### `DELETE /api/attacks/cleanup/old`
-Nettoie les anciennes attaques
-
-## 🔌 WebSocket
-
-### Connexion
-```javascript
-const ws = new WebSocket('ws://localhost:8000/ws');
-```
-
-### Événements
-
-#### Nouvelle attaque
-```javascript
-ws.onmessage = function(event) {
-    const attack = JSON.parse(event.data);
-    console.log('Nouvelle attaque:', attack);
-};
-```
-
-### Format des données
-```json
-{
-    "id": 123,
-    "ip_address": "192.168.1.1",
-    "port": 22,
-    "protocol": "SSH",
-    "country": "United States",
-    "city": "New York",
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "timestamp": "2024-01-15T10:30:00Z"
-}
-```
-
-## 🗄️ Base de Données
-
-### Modèle Attack
+### Configuration PostgreSQL (Production)
 
 ```python
-class Attack(Base):
-    id = Column(Integer, primary_key=True)
-    ip_address = Column(String(45), nullable=False)
-    port = Column(Integer, nullable=False)
-    protocol = Column(String(10), nullable=False)
-    country = Column(String(100))
-    city = Column(String(100))
-    latitude = Column(Float)
-    longitude = Column(Float)
-    region = Column(String(100))
-    timezone = Column(String(50))
-    isp = Column(String(200))
-    timestamp = Column(DateTime, nullable=False)
-    user_agent = Column(Text)
-    additional_data = Column(Text)
+# Dans database.py
+engine = create_engine(
+    "postgresql://user:password@localhost/honeypot",
+    echo=False,
+    pool_pre_ping=True
+)
 ```
 
-### Scripts Utilitaires
+## 📝 Utilisation
 
-#### Initialisation
+### Création d'une attaque
+
+```python
+from database import get_db
+from models import Attack
+from datetime import datetime
+
+# Créer une attaque
+attack = Attack(
+    ip_address="192.168.1.100",
+    port=22,
+    protocol="SSH",
+    country="United States",
+    city="New York",
+    latitude=40.7128,
+    longitude=-74.0060,
+    timestamp=datetime.now()
+)
+
+# Sauvegarder
+db = next(get_db())
+db.add(attack)
+db.commit()
+db.close()
+```
+
+### Requêtes de base
+
+```python
+from database import get_db
+from models import Attack
+from sqlalchemy import func
+
+db = next(get_db())
+
+# Toutes les attaques
+attacks = db.query(Attack).all()
+
+# Attaques récentes (24h)
+from datetime import datetime, timedelta
+yesterday = datetime.now() - timedelta(days=1)
+recent = db.query(Attack).filter(Attack.timestamp >= yesterday).all()
+
+# Statistiques par pays
+country_stats = db.query(
+    Attack.country,
+    func.count(Attack.id).label('count')
+).group_by(Attack.country).all()
+
+db.close()
+```
+
+### Requêtes avancées
+
+```python
+from sqlalchemy import and_, or_, func
+
+# Attaques critiques (SSH, RDP, etc.)
+critical_ports = [22, 3389, 5432, 3306]
+critical = db.query(Attack).filter(Attack.port.in_(critical_ports)).all()
+
+# Attaques géolocalisées
+geo_attacks = db.query(Attack).filter(
+    and_(
+        Attack.latitude.isnot(None),
+        Attack.longitude.isnot(None)
+    )
+).all()
+
+# Attaques par heure
+hourly = db.query(
+    func.extract('hour', Attack.timestamp).label('hour'),
+    func.count(Attack.id).label('count')
+).group_by('hour').all()
+```
+
+## 🛠️ Scripts Utilitaires
+
+### `init_db.py`
+
+Script d'initialisation de la base de données.
+
 ```bash
+# Initialisation normale
 python init_db.py
-```
 
-#### Réinitialisation complète
-```bash
+# Réinitialisation complète (ATTENTION: supprime toutes les données!)
 python init_db.py --reset
+
+# Aide
+python init_db.py --help
 ```
 
-#### Génération de données de test
+### `populate_fake_attacks.py`
+
+Générateur de données de test.
+
 ```bash
+# Générer des données de test
 python populate_fake_attacks.py
+
+# Aide
+python populate_fake_attacks.py --help
+```
+
+**Données générées :**
+- 200 attaques historiques (derniers 7 jours)
+- 50 attaques récentes (dernières 24h)
+- 20 pays différents avec poids réalistes
+- 16 ports communément attaqués
+- Géolocalisation réaliste
+
+### `example_usage.py`
+
+Exemples d'utilisation des modèles.
+
+```bash
+# Lancer les exemples
+python example_usage.py
+```
+
+## 📊 Fonctions Utilitaires
+
+### `database.py`
+
+```python
+# Vérifier la connexion
+check_database_connection()
+
+# Obtenir des informations
+get_database_info()
+
+# Statistiques des tables
+get_table_stats()
+
+# Taille de la base de données
+get_database_size()
+```
+
+### `models.py`
+
+```python
+# Conversion en dictionnaire
+attack.to_dict()
+
+# Conversion pour WebSocket
+attack.to_websocket_dict()
+
+# Vérifier si récent
+attack.is_recent(hours=24)
+
+# Obtenir la localisation
+attack.get_location_string()
+
+# Niveau de risque
+attack.get_risk_level()
+```
+
+## 🔍 Requêtes de Performance
+
+### Requêtes optimisées
+
+```python
+# Pagination efficace
+attacks = db.query(Attack).order_by(Attack.timestamp.desc()).offset(0).limit(100).all()
+
+# Filtrage par index
+us_attacks = db.query(Attack).filter(Attack.country == "United States").all()
+
+# Requêtes composées
+recent_us_attacks = db.query(Attack).filter(
+    and_(
+        Attack.country == "United States",
+        Attack.timestamp >= yesterday
+    )
+).all()
+```
+
+### Index recommandés
+
+```python
+# Index sur les champs fréquemment utilisés
+Index('idx_ip_address', 'ip_address')
+Index('idx_timestamp', 'timestamp')
+Index('idx_country', 'country')
+
+# Index composés pour les requêtes complexes
+Index('idx_ip_timestamp', 'ip_address', 'timestamp')
+Index('idx_country_timestamp', 'country', 'timestamp')
 ```
 
 ## 🧪 Tests
 
-### Lancer tous les tests
-```bash
-pytest tests/ -v
-```
-
-### Tests spécifiques
-```bash
-pytest tests/test_api.py::TestAttacksEndpoints::test_get_attacks_with_data -v
-```
-
-### Couverture de code
-```bash
-pytest --cov=. tests/
-```
-
-## 🔍 Honeypot
-
-### Fonctionnement
-
-Le honeypot écoute sur un port TCP configuré et :
-1. Accepte toutes les connexions entrantes
-2. Capture l'IP source et le port ciblé
-3. Géolocalise l'adresse IP
-4. Enregistre l'attaque en base de données
-5. Envoie l'événement via WebSocket
-
-### Configuration
+### Tests de base
 
 ```python
-# Dans main.py
-honeypot_server = HoneypotServer(
-    port=2222,  # Port à surveiller
-    on_attack_callback=handle_new_attack
-)
+# Test de connexion
+from database import check_database_connection
+assert check_database_connection() == True
+
+# Test de création
+attack = Attack(ip_address="1.1.1.1", port=80, protocol="HTTP")
+db.add(attack)
+db.commit()
+assert attack.id is not None
 ```
 
-### Test de connexion
-
-```bash
-# Tester la connexion au honeypot
-telnet localhost 2222
-```
-
-## 🌍 Géolocalisation
-
-### Service GeoIP
-
-Le service utilise l'API gratuite ip-api.com :
-- 1000 requêtes gratuites par minute
-- Pas de clé API requise
-- Cache des résultats pendant 24h
-
-### Configuration
+### Tests de performance
 
 ```python
-# Dans services/geoip.py
-class GeoIPService:
-    def __init__(self):
-        self.base_url = "http://ip-api.com/json"
-        self.cache_duration = timedelta(hours=24)
-        self.rate_limit_delay = 0.1  # 100ms entre requêtes
-```
+import time
 
-### Test du service
-
-```python
-from services.geoip import test_geoip_service
-import asyncio
-
-asyncio.run(test_geoip_service())
-```
-
-## 📊 Monitoring et Logs
-
-### Logs
-
-Les logs sont configurés avec différents niveaux :
-- `INFO` : Informations générales
-- `WARNING` : Avertissements
-- `ERROR` : Erreurs
-- `DEBUG` : Informations de débogage
-
-### Métriques
-
-L'API expose des métriques via `/stats` :
-- Nombre total d'attaques
-- Attaques des dernières 24h
-- Top pays et ports
-- Connexions WebSocket actives
-
-### Health Check
-
-```bash
-curl http://localhost:8000/health
-```
-
-## 🐛 Dépannage
-
-### Problèmes Courants
-
-#### Le honeypot ne démarre pas
-```bash
-# Vérifier que le port n'est pas utilisé
-netstat -tulpn | grep :2222
-
-# Changer le port dans main.py
-```
-
-#### Erreur de base de données
-```bash
-# Réinitialiser la base de données
-python init_db.py --reset
-```
-
-#### Erreur de géolocalisation
-```bash
-# Vérifier la connectivité
-curl "http://ip-api.com/json/8.8.8.8"
-```
-
-#### WebSocket ne fonctionne pas
-```bash
-# Vérifier les logs
-tail -f logs/app.log
-```
-
-### Logs
-
-```bash
-# Logs en temps réel
-python main.py
-
-# Logs avec niveau DEBUG
-LOG_LEVEL=DEBUG python main.py
+# Test de requête simple
+start = time.time()
+attacks = db.query(Attack).all()
+duration = time.time() - start
+print(f"Requête simple: {duration:.3f}s pour {len(attacks)} attaques")
 ```
 
 ## 🔒 Sécurité
 
-### ⚠️ Avertissements
+### Bonnes pratiques
 
-- **Ne pas déployer en production** sans sécurisation appropriée
-- **Utiliser uniquement dans des environnements isolés**
-- **Les données sont stockées localement** (SQLite)
-- **Aucune authentification** implémentée
+1. **Validation des données** : Valider les entrées avant insertion
+2. **Requêtes paramétrées** : Utiliser les paramètres SQLAlchemy
+3. **Gestion des erreurs** : Capturer et logger les erreurs
+4. **Sauvegardes** : Sauvegarder régulièrement la base de données
 
-### Recommandations
+### Exemple de validation
 
-1. **Isoler le réseau** : Utiliser un réseau isolé pour le honeypot
-2. **Surveiller les logs** : Surveiller les tentatives d'attaque
-3. **Sauvegarder les données** : Sauvegarder régulièrement la base de données
-4. **Mettre à jour** : Maintenir les dépendances à jour
+```python
+def validate_attack_data(data):
+    """Valide les données d'une attaque"""
+    if not data.get('ip_address'):
+        raise ValueError("IP address is required")
+    
+    if not isinstance(data.get('port'), int) or not (1 <= data.get('port') <= 65535):
+        raise ValueError("Port must be an integer between 1 and 65535")
+    
+    return True
+```
 
-## 📈 Performance
+## 📈 Monitoring
 
-### Optimisations
+### Métriques importantes
 
-- **Cache de géolocalisation** : Évite les appels API répétés
-- **Index de base de données** : Requêtes optimisées
-- **Pagination** : Limite des résultats
-- **WebSocket asynchrone** : Mises à jour en temps réel efficaces
+```python
+# Nombre total d'attaques
+total_attacks = db.query(Attack).count()
 
-### Limites
+# Taux d'attaques par heure
+hourly_rate = db.query(
+    func.extract('hour', Attack.timestamp).label('hour'),
+    func.count(Attack.id).label('count')
+).group_by('hour').all()
 
-- **SQLite** : Limité à un seul processus
-- **Géolocalisation** : 1000 req/min max
-- **Mémoire** : Cache des connexions WebSocket
+# Top pays attaquants
+top_countries = db.query(
+    Attack.country,
+    func.count(Attack.id).label('count')
+).group_by(Attack.country).order_by(func.count(Attack.id).desc()).limit(10).all()
+```
 
-## 🤝 Contribution
+### Logs de performance
 
-### Structure du Code
+```python
+import logging
 
-- **Modèles** : `models.py`
-- **Routes** : `routes/attacks.py`
-- **Services** : `services/geoip.py`
-- **Tests** : `tests/test_api.py`
+# Logger les requêtes lentes
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('sqlalchemy.engine')
+logger.setLevel(logging.INFO)
+```
 
-### Ajout de Fonctionnalités
+## 🐛 Dépannage
 
-1. Créer une branche feature
-2. Implémenter la fonctionnalité
-3. Ajouter les tests
-4. Mettre à jour la documentation
-5. Créer une Pull Request
+### Problèmes courants
 
-## 📝 Changelog
+#### Erreur de connexion SQLite
+```bash
+# Vérifier les permissions
+ls -la honeypot_attacks.db
 
-### Version 1.0.0
-- Honeypot TCP basique
-- API REST complète
-- WebSocket temps réel
-- Géolocalisation IP
-- Base de données SQLite
-- Tests unitaires
-- Documentation complète
+# Réinitialiser la base
+python init_db.py --reset
+```
 
-## 📞 Support
+#### Erreur de threading SQLite
+```python
+# Utiliser StaticPool
+engine = create_engine(
+    "sqlite:///./honeypot_attacks.db",
+    poolclass=StaticPool,
+    connect_args={"check_same_thread": False}
+)
+```
 
-Pour toute question ou problème :
-- Ouvrir une issue sur GitHub
-- Consulter la documentation API : http://localhost:8000/docs
-- Vérifier les logs de l'application
+#### Requêtes lentes
+```python
+# Ajouter des index
+from sqlalchemy import Index
+Index('idx_timestamp', Attack.timestamp)
+Index('idx_country', Attack.country)
+```
+
+### Logs de débogage
+
+```python
+# Activer les logs SQL
+engine = create_engine("sqlite:///./honeypot_attacks.db", echo=True)
+```
+
+## 📚 Ressources
+
+### Documentation SQLAlchemy
+- [SQLAlchemy Core](https://docs.sqlalchemy.org/en/14/core/)
+- [SQLAlchemy ORM](https://docs.sqlalchemy.org/en/14/orm/)
+- [SQLAlchemy Engine](https://docs.sqlalchemy.org/en/14/core/engines.html)
+
+### Documentation SQLite
+- [SQLite Documentation](https://www.sqlite.org/docs.html)
+- [SQLite Data Types](https://www.sqlite.org/datatype3.html)
+
+### Outils de gestion
+- [DB Browser for SQLite](https://sqlitebrowser.org/)
+- [SQLite Studio](https://sqlitestudio.pl/)
 
 ---
 
-**⚡ Développé avec FastAPI, SQLAlchemy et Python pour la cybersécurité**
+**⚡ Développé avec SQLAlchemy et Python pour la cybersécurité**

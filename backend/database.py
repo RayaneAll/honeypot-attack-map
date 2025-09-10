@@ -61,7 +61,7 @@ def init_database():
     """
     try:
         # Importer tous les modèles pour qu'ils soient enregistrés
-        from models import Attack, AttackStats
+        from models import Attack
         
         # Créer toutes les tables
         Base.metadata.create_all(bind=engine)

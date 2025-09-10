@@ -17,7 +17,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from database import get_db, init_database
 from models import Attack
-from services.geoip import GeoIPService
 
 # Configuration du logging
 logging.basicConfig(
@@ -74,7 +73,6 @@ class FakeAttackGenerator:
     """Générateur de fausses attaques pour les tests"""
     
     def __init__(self):
-        self.geoip_service = GeoIPService()
         self.generated_ips = set()
     
     def generate_ip_address(self) -> str:
@@ -122,7 +120,7 @@ class FakeAttackGenerator:
         random_seconds = random.randint(0, int((end_time - start_time).total_seconds()))
         return start_time + timedelta(seconds=random_seconds)
     
-    async def create_fake_attack(self, db) -> Attack:
+    def create_fake_attack(self, db) -> Attack:
         """Crée une fausse attaque"""
         # Générer les données de base
         ip_address = self.generate_ip_address()
@@ -153,7 +151,7 @@ class FakeAttackGenerator:
         
         return attack
     
-    async def generate_attacks(self, count: int, db) -> List[Attack]:
+    def generate_attacks(self, count: int, db) -> List[Attack]:
         """Génère un nombre spécifique d'attaques"""
         attacks = []
         
@@ -161,7 +159,7 @@ class FakeAttackGenerator:
         
         for i in range(count):
             try:
-                attack = await self.create_fake_attack(db)
+                attack = self.create_fake_attack(db)
                 attacks.append(attack)
                 
                 if (i + 1) % 50 == 0:
@@ -196,14 +194,14 @@ async def main():
             # Attaques historiques (derniers 7 jours)
             historical_count = 200
             print(f"📅 Génération de {historical_count} attaques historiques...")
-            historical_attacks = await generator.generate_attacks(historical_count, db)
+            historical_attacks = generator.generate_attacks(historical_count, db)
             
             # Attaques récentes (dernières 24h)
             recent_count = 50
             print(f"🔥 Génération de {recent_count} attaques récentes...")
             recent_generator = FakeAttackGenerator()
             recent_generator.generate_timestamp = lambda: datetime.now() - timedelta(hours=random.randint(0, 24))
-            recent_attacks = await recent_generator.generate_attacks(recent_count, db)
+            recent_attacks = recent_generator.generate_attacks(recent_count, db)
             
             # Sauvegarder en base de données
             print("\n💾 Sauvegarde en base de données...")
