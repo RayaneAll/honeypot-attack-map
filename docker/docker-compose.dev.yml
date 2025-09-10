@@ -1,0 +1,118 @@
+# Docker Compose pour le développement
+# Version avec volumes montés pour le développement en temps réel
+
+version: '3.8'
+
+services:
+  # Service Backend - FastAPI + SQLite (Développement)
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    container_name: honeypot-backend-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      # Monter le code source pour le développement en temps réel
+      - ../backend:/app
+      - backend_data:/app/data
+      # Exclure node_modules et autres dossiers volumineux
+      - /app/__pycache__
+      - /app/.pytest_cache
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=sqlite:///./data/honeypot_attacks.db
+      - HONEYPOT_PORT=2222
+      - GEOIP_API_URL=http://ip-api.com/json
+      - LOG_LEVEL=DEBUG
+    networks:
+      - honeypot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - init-db
+
+  # Service Frontend - React + Vite (Développement)
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend.Dockerfile
+    container_name: honeypot-frontend-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Monter le code source pour le développement en temps réel
+      - ../frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://backend:8000
+      - VITE_WS_URL=ws://backend:8000
+      - VITE_APP_TITLE=Honeypot Attack Map (Dev)
+      - VITE_APP_VERSION=1.0.0-dev
+    networks:
+      - honeypot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      - backend
+
+  # Service d'initialisation de la base de données
+  init-db:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    container_name: honeypot-init-db-dev
+    volumes:
+      - backend_data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=sqlite:///./data/honeypot_attacks.db
+    networks:
+      - honeypot-network
+    command: ["python", "init_db.py"]
+    restart: "no"
+
+  # Service de génération de données de test
+  populate-data:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    container_name: honeypot-populate-data-dev
+    volumes:
+      - backend_data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=sqlite:///./data/honeypot_attacks.db
+    networks:
+      - honeypot-network
+    command: ["python", "populate_fake_attacks.py"]
+    depends_on:
+      - init-db
+    restart: "no"
+
+# Volumes nommés pour persister les données
+volumes:
+  backend_data:
+    driver: local
+    name: honeypot_backend_data_dev
+
+# Réseau interne pour la communication entre services
+networks:
+  honeypot-network:
+    driver: bridge
+    name: honeypot-network-dev
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16

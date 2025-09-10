@@ -54,19 +54,36 @@ git clone https://github.com/votre-username/honeypot-attack-map.git
 cd honeypot-attack-map
 ```
 
-2. **Lancer avec Docker Compose**
+2. **Construire et lancer les conteneurs**
 ```bash
-# Production
-docker-compose up -d
+# Méthode recommandée avec scripts
+./scripts/docker-start.sh dev    # Mode développement
+./scripts/docker-start.sh prod   # Mode production
+./scripts/docker-start.sh demo   # Mode démonstration
 
-# Développement
-docker-compose -f docker-compose.dev.yml up -d
+# Ou méthode manuelle
+docker-compose build
+docker-compose up -d
 ```
 
 3. **Accéder à l'application**
-- Frontend : http://localhost:3000
-- Backend API : http://localhost:5000
-- Health Check : http://localhost:5000/api/health
+- **Frontend** : http://localhost:3000
+- **Backend API** : http://localhost:8000
+- **API Documentation** : http://localhost:8000/docs
+- **Health Check** : http://localhost:8000/health
+
+4. **Vérifier le statut des services**
+```bash
+# Avec scripts (recommandé)
+./scripts/docker-logs.sh          # Voir tous les logs
+./scripts/docker-logs.sh backend  # Logs du backend uniquement
+./scripts/docker-stop.sh --status # Statut des services
+
+# Ou méthode manuelle
+docker-compose logs -f
+docker-compose ps
+docker-compose down
+```
 
 ### Installation Locale
 
@@ -78,16 +95,114 @@ source venv/bin/activate  # Linux/Mac
 # ou venv\Scripts\activate  # Windows
 
 pip install -r requirements.txt
-python demo_data.py  # Générer des données de démo
-python app.py
+python init_db.py  # Initialiser la base de données
+python populate_fake_attacks.py  # Générer des données de démo
+python main.py
 ```
 
 2. **Frontend (React)**
 ```bash
 cd frontend
 npm install
-npm start
+npm run dev
 ```
+
+## 🐳 Configuration Docker
+
+### Fichiers Docker
+
+Le projet utilise une architecture Docker modulaire :
+
+```
+docker/
+├── backend.Dockerfile      # Image FastAPI + SQLite
+├── frontend.Dockerfile     # Image React + Vite
+├── docker-compose.yml      # Configuration production
+├── docker-compose.dev.yml  # Configuration développement
+└── docker-compose.prod.yml # Configuration production avancée
+```
+
+### Services Docker
+
+#### Backend Service
+- **Image** : Python 3.10-slim
+- **Port** : 8000
+- **Base de données** : SQLite (persistante)
+- **Health check** : `/health` endpoint
+- **Volumes** : Données persistantes
+
+#### Frontend Service
+- **Image** : Node.js 18-alpine
+- **Port** : 3000
+- **Build** : Vite + TailwindCSS
+- **Communication** : WebSocket vers backend
+- **Volumes** : Code source (mode dev)
+
+### Commandes Docker Utiles
+
+#### Scripts Automatisés (Recommandé)
+```bash
+# Démarrer le projet
+./scripts/docker-start.sh [dev|prod|demo]
+
+# Arrêter le projet
+./scripts/docker-stop.sh [--clean|--images|--full]
+
+# Voir les logs
+./scripts/docker-logs.sh [service] [options]
+```
+
+#### Commandes Docker Compose
+```bash
+# Construire les images
+docker-compose build
+
+# Lancer en arrière-plan
+docker-compose up -d
+
+# Voir les logs
+docker-compose logs -f
+
+# Redémarrer un service
+docker-compose restart backend
+
+# Arrêter tous les services
+docker-compose down
+
+# Supprimer les volumes (ATTENTION: supprime les données)
+docker-compose down -v
+
+# Nettoyer les images
+docker-compose down --rmi all
+```
+
+### Modes de Déploiement
+
+#### Mode Production
+```bash
+docker-compose up -d
+```
+- Services optimisés
+- Logs réduits
+- Restart automatique
+- Volumes persistants
+
+#### Mode Développement
+```bash
+docker-compose -f docker/docker-compose.dev.yml up -d
+```
+- Code source monté
+- Hot reload activé
+- Logs détaillés
+- Debug facilité
+
+#### Mode Démonstration
+```bash
+docker-compose --profile demo up -d
+```
+- Données de test générées
+- Interface pré-remplie
+- Parfait pour les démos
 
 ## 📖 Guide d'Utilisation
 
@@ -150,9 +265,30 @@ socket.on('new_attack', (attack) => {
 
 ## 🔧 Configuration
 
+### Variables d'Environnement Docker
+
+#### Backend
+```env
+PYTHONPATH=/app
+PYTHONUNBUFFERED=1
+DATABASE_URL=sqlite:///./data/honeypot_attacks.db
+HONEYPOT_PORT=2222
+GEOIP_API_URL=http://ip-api.com/json
+LOG_LEVEL=INFO
+```
+
+#### Frontend
+```env
+NODE_ENV=development
+VITE_API_URL=http://backend:8000
+VITE_WS_URL=ws://backend:8000
+VITE_APP_TITLE=Honeypot Attack Map
+VITE_APP_VERSION=1.0.0
+```
+
 ### Ports du Honeypot
 
-Modifiez `HONEYPOT_PORTS` dans `backend/app.py` :
+Modifiez `HONEYPOT_PORTS` dans `backend/main.py` :
 ```python
 HONEYPOT_PORTS = [22, 23, 80, 443, 3389, 5432, 3306]  # Ports à surveiller
 ```
@@ -161,14 +297,22 @@ HONEYPOT_PORTS = [22, 23, 80, 443, 3389, 5432, 3306]  # Ports à surveiller
 
 L'API utilise ip-api.com (gratuite, 1000 req/min). Pour changer :
 ```python
-# Dans backend/geolocation.py
+# Dans backend/services/geoip.py
 response = requests.get(f'http://ip-api.com/json/{ip_address}', timeout=5)
 ```
 
 ### Base de Données
 
 - **Développement** : SQLite (par défaut)
-- **Production** : PostgreSQL (voir docker-compose.yml)
+- **Production** : SQLite persistante dans Docker
+- **Volume** : `honeypot_backend_data`
+
+### Communication Inter-Conteneurs
+
+Les services communiquent via le réseau Docker interne :
+- **Backend** : `http://backend:8000`
+- **Frontend** : `http://frontend:3000`
+- **WebSocket** : `ws://backend:8000`
 
 ## 🧪 Tests
 
@@ -256,28 +400,62 @@ Modifiez les composants React dans `frontend/src/components/` :
 
 ### Problèmes Courants
 
+#### Les conteneurs ne démarrent pas
+```bash
+# Vérifier les logs de build
+docker-compose build --no-cache
+
+# Vérifier les logs de démarrage
+docker-compose logs
+
+# Redémarrer les services
+docker-compose restart
+```
+
 #### Le honeypot ne détecte pas d'attaques
 ```bash
-# Vérifier que les ports sont ouverts
-netstat -tulpn | grep :22
+# Vérifier que le backend est en cours d'exécution
+docker-compose ps backend
 
-# Tester la connexion
-telnet localhost 22
+# Tester la connexion au honeypot
+telnet localhost 2222
+
+# Vérifier les logs du backend
+docker-compose logs backend
 ```
 
 #### Erreur de géolocalisation
 ```bash
-# Vérifier la connectivité API
-curl "http://ip-api.com/json/8.8.8.8"
+# Vérifier la connectivité API depuis le conteneur
+docker-compose exec backend curl "http://ip-api.com/json/8.8.8.8"
+
+# Vérifier les logs
+docker-compose logs backend | grep geoip
 ```
 
 #### Problème de WebSocket
 ```bash
+# Vérifier la connexion WebSocket
+docker-compose exec frontend curl -I http://backend:8000/ws
+
 # Vérifier les logs
-docker-compose logs backend
+docker-compose logs frontend | grep websocket
 ```
 
-### Logs
+#### Frontend ne se connecte pas au backend
+```bash
+# Vérifier la connectivité réseau
+docker-compose exec frontend ping backend
+
+# Vérifier les variables d'environnement
+docker-compose exec frontend env | grep VITE_API_URL
+
+# Tester l'API depuis le frontend
+docker-compose exec frontend curl http://backend:8000/health
+```
+
+### Logs et Debugging
+
 ```bash
 # Logs en temps réel
 docker-compose logs -f
@@ -285,6 +463,44 @@ docker-compose logs -f
 # Logs spécifiques
 docker-compose logs backend
 docker-compose logs frontend
+
+# Logs avec timestamps
+docker-compose logs -f -t
+
+# Logs des 100 dernières lignes
+docker-compose logs --tail=100 backend
+```
+
+### Commandes de Maintenance
+
+```bash
+# Nettoyer les conteneurs arrêtés
+docker-compose down
+
+# Supprimer les volumes (ATTENTION: supprime les données)
+docker-compose down -v
+
+# Nettoyer les images inutilisées
+docker system prune -a
+
+# Reconstruire sans cache
+docker-compose build --no-cache
+
+# Vérifier l'utilisation des ressources
+docker stats
+```
+
+### Problèmes de Performance
+
+```bash
+# Vérifier l'utilisation des ressources
+docker stats
+
+# Vérifier l'espace disque
+docker system df
+
+# Nettoyer l'espace disque
+docker system prune -a --volumes
 ```
 
 ## 🤝 Contribution

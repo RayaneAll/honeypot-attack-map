@@ -1,0 +1,91 @@
+# Docker Compose pour la production
+# Version optimisée pour le déploiement en production
+
+version: '3.8'
+
+services:
+  # Service Backend - FastAPI + SQLite (Production)
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    container_name: honeypot-backend-prod
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=sqlite:///./data/honeypot_attacks.db
+      - HONEYPOT_PORT=2222
+      - GEOIP_API_URL=http://ip-api.com/json
+      - LOG_LEVEL=WARNING
+    networks:
+      - honeypot-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - init-db
+
+  # Service Frontend - React + Vite (Production avec Nginx)
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend.Dockerfile
+    container_name: honeypot-frontend-prod
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://backend:8000
+      - VITE_WS_URL=ws://backend:8000
+      - VITE_APP_TITLE=Honeypot Attack Map
+      - VITE_APP_VERSION=1.0.0
+    networks:
+      - honeypot-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      - backend
+
+  # Service d'initialisation de la base de données
+  init-db:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    container_name: honeypot-init-db-prod
+    volumes:
+      - backend_data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=sqlite:///./data/honeypot_attacks.db
+    networks:
+      - honeypot-network
+    command: ["python", "init_db.py"]
+    restart: "no"
+
+# Volumes nommés pour persister les données
+volumes:
+  backend_data:
+    driver: local
+    name: honeypot_backend_data_prod
+
+# Réseau interne pour la communication entre services
+networks:
+  honeypot-network:
+    driver: bridge
+    name: honeypot-network-prod
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
